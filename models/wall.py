@@ -12,6 +12,7 @@ class Library:
         item.color = 15
         item.position = Transform.id()
         item.file = '3010.dat'
+        return item
 
 class Transform:
     def __init__(self):
@@ -31,7 +32,7 @@ class Transform:
         for i in range(0, 3):
             z.append(self.matrix[i][3])
         for i in range(0, 3):
-            z.extend(self.matrix[i][0:2])
+            z.extend(self.matrix[i][0:3])
         return ' '.join(str(d) for d in z)
 
     @classmethod
@@ -56,20 +57,21 @@ class Item:
         self.position = self.position.apply(matrix)
 
     def emitldraw(self, stream):
-        stream.write("1 {0} {1} {2}".format(self.color, self.position.reprldraw(), self.file ) )
+        stream.write("1 {0} {1} {2}\r\n".format(self.color, self.position.reprldraw(), self.file ) )
 
     @classmethod
-    def frombrick(cls, name, x, y, z):
+    def frombrick(cls, name, x, y, z, color=15):
         item = Library.getbyname(name)
-        item.transform(Transform.Translation( x*20, y*20, z*24 ) )
+        item.color = color
+        item.transform(Transform.translation( x*20, y*20, z*24 ) )
         return item
 
 class Compound:
     def __init__(self):
         self.items = []
 
-    def addbrick(self, item, x, y, z):
-        self.items.append(Item.frombrick(name, x, y, z))
+    def addbrick(self, name, x, y, z, color=15):
+        self.items.append(Item.frombrick(name, x, y, z, color))
 
     def emitldraw(self, stream):
         for x in self.items:
@@ -78,8 +80,7 @@ class Compound:
 def createrow(color, len):
     model = Compound()
     for x in range(0, len):
-        model.addbrick('Brick 1 x 4', x*4, 0, 0)
-    model.setcolor(14)
+        model.addbrick('Brick 1 x 4', x*4, 0, 0, color=14)
     model.emitldraw(sys.stdout)
 
 createrow(2, 5)
