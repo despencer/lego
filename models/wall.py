@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 
+import pandas as pd
 import sys
 
 class Library:
@@ -7,11 +8,15 @@ class Library:
         pass
 
     @classmethod
+    def init(cls):
+        cls.parts = pd.read_csv('/usr/share/rebrickable/parts.csv')
+
+    @classmethod
     def getbyname(cls, name):
         item = Item()
         item.color = 15
         item.position = Transform.id()
-        item.file = '3010.dat'
+        item.file = cls.parts.loc[cls.parts['name'] == name]['part_num'].values[0] + '.dat'
         return item
 
 class Transform:
@@ -83,4 +88,5 @@ def createrow(color, len):
         model.addbrick('Brick 1 x 4', x*4, 0, 0, color=14)
     model.emitldraw(sys.stdout)
 
+Library.init()
 createrow(2, 5)
