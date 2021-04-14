@@ -32,6 +32,13 @@ class Transform:
                     trans.matrix[i][j] = trans.matrix[i][j] + ( matrix.matrix[i][k] * self.matrix[k][j] )
         return trans
 
+    def copy(self):
+        trans = Transform.id()
+        for i in range(0, 4):
+            for j in range(0, 4):
+                trans.matrix[i][j] = self.matrix[i][j]
+        return trans
+
     def reprldraw(self):
         z = [ ]
         for i in range(0, 3):
@@ -54,6 +61,15 @@ class Transform:
         trans.matrix[2][3] = z
         return trans
 
+    @classmethod
+    def swapyz(cls):
+        trans = cls()
+        trans.matrix = [ [ 1, 0, 0, 0 ],
+                         [ 0, 0, 1, 0 ],
+                         [ 0, 1, 0, 0 ],
+                         [ 0, 0, 0, 1] ]
+        return trans
+
 class Item:
     def __init__(self):
         pass
@@ -61,8 +77,8 @@ class Item:
     def transform(self, matrix):
         self.position = self.position.apply(matrix)
 
-    def emitldraw(self, stream):
-        stream.write("1 {0} {1} {2}\r\n".format(self.color, self.position.reprldraw(), self.file ) )
+    def emitldraw(self, stream, ldtrans):
+        stream.write("1 {0} {1} {2}\r\n".format(self.color, self.position.copy().apply(ldtrans).reprldraw(), self.file ) )
 
     @classmethod
     def frombrick(cls, name, x, y, z, color=15):
@@ -78,15 +94,19 @@ class Compound:
     def addbrick(self, name, x, y, z, color=15):
         self.items.append(Item.frombrick(name, x, y, z, color))
 
-    def emitldraw(self, stream):
+    def emitldraw(self, stream, ldtrans = None):
+        if ldtrans == None:
+            ldtrans = Transform.id()
         for x in self.items:
-            x.emitldraw(stream)
+            x.emitldraw(stream, ldtrans = ldtrans)
 
-def createrow(color, len):
+def createrow(color, sizex, sizey):
     model = Compound()
-    for x in range(0, len):
-        model.addbrick('Brick 1 x 4', x*4, 0, 0, color=14)
-    model.emitldraw(sys.stdout)
+    for x in range(0, sizex):
+        model.addbrick('Brick 1 x 4', x*4, 0, 0, color=2)
+        model.addbrick('Brick 1 x 4', x*4+1, sizey*4, 0, color=4)
+    return model
 
 Library.init()
-createrow(2, 5)
+model = createrow(2, 5, 2)
+model.emitldraw(sys.stdout)
