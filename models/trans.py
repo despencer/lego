@@ -50,6 +50,15 @@ class Transform:
         return trans
 
     @classmethod
+    def rotatexy(cls):
+        trans = cls()
+        trans.matrix = [ [ 0, -1, 0, 0 ],
+                         [ 1, 0, 0, 0 ],
+                         [ 0, 0, 1, 0 ],
+                         [ 0, 0, 0, 1] ]
+        return trans
+
+    @classmethod
     def flipy(cls):
         trans = cls()
         trans.matrix = [ [ 1, 0, 0, 0 ],
