@@ -27,6 +27,22 @@ class Transform:
         return ' '.join(str(d) for d in z)
 
     @classmethod
+    def parseldraw(cls, pres):
+        if len(pres) != 12:
+           raise ValueError
+        trans = Transform.id()
+        for i in range(0, 3):
+            trans.matrix[i][3] = cls.parseldrawvalue(pres[i])
+        for i in range(0, 3):
+            for j in range(0, 3):
+                trans.matrix[i][j] = cls.parseldrawvalue(pres[3*(i+1)+j])
+        return trans
+
+    @classmethod
+    def parseldrawvalue(cls, value):
+        return float(value) if '.' in value else int(value)
+
+    @classmethod
     def id(cls):
         trans = cls()
         trans.matrix = [ [ 1, 0, 0, 0 ], [ 0, 1, 0, 0 ], [ 0, 0, 1, 0 ], [ 0, 0, 0, 1] ]
@@ -74,3 +90,6 @@ class Transform:
     @classmethod
     def fromldraw(cls):
         return cls.id().apply(cls.flipy()).apply(cls.swapyz())
+
+    def __repr__(self):
+        return str(self.matrix)

@@ -1,4 +1,6 @@
+import re
 import pandas as pd
+import os.path
 from trans import Transform
 
 class Library:
@@ -8,14 +10,46 @@ class Library:
     @classmethod
     def init(cls):
         cls.parts = pd.read_csv('/usr/share/rebrickable/parts.csv')
+        cls.bounds = dict()
 
     @classmethod
     def getbyname(cls, name):
         item = Item()
         item.color = 15
-        item.position = Transform.fromldraw()
         item.file = cls.parts.loc[cls.parts['name'] == name]['part_num'].values[0] + '.dat'
+        Library.getbounds(item.file)
+        item.position = Transform.fromldraw()
         return item
+
+    @classmethod
+    def getbounds(cls, filename):
+        if filename not in cls.bounds:
+            cls.bounds[filename] = cls.calcbounds(filename)
+        return cls.bounds[filename]
+
+    @classmethod
+    def calcbounds(cls, filename):
+        print("Doing " + filename)
+        with open("/usr/share/ldraw/parts/"+filename) as f:
+            lines = f.readlines()
+        for l in lines:
+            if l[0] == '\n' or l[0] == '0':
+                pass
+            else:
+                values = re.split('[ \t\n]+', l)
+                print(values)
+                if(values[0] == '1'):
+                    trans = Transform.parseldraw(values[2:14])
+                    subfile = values[14].replace("\\",os.path.sep)
+                    print(trans)
+                    subbounds = cls.calcbounds(subfile)
+                else:
+                    print("Unknown line type in file {1}: {0}".format(l,filename))
+        return Bounds()
+
+class Bounds:
+    def __init__(self):
+        pass
 
 class Item:
     def __init__(self):
