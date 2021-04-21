@@ -32,6 +32,7 @@ class Library:
         print("Doing " + filename)
         with open(cls.locatefile(filename)) as f:
             lines = f.readlines()
+        bounds = Bounds()
         for l in lines:
             if l[0] == '\n' or l[0] == '0':
                 pass
@@ -43,9 +44,22 @@ class Library:
                     subfile = values[14].replace("\\",os.path.sep)
                     print(trans)
                     subbounds = cls.calcbounds(subfile)
+                elif(values[0] == '2'):
+                    bounds.extend(values[2:5])
+                    bounds.extend(values[5:8])
+                elif(values[0] == '3'):
+                    bounds.extend(values[2:5])
+                    bounds.extend(values[5:8])
+                    bounds.extend(values[8:11])
+                elif(values[0] == '4'):
+                    bounds.extend(values[2:5])
+                    bounds.extend(values[5:8])
+                    bounds.extend(values[8:11])
+                    bounds.extend(values[11:14])
                 else:
                     print("Unknown line type in file {1}: {0}".format(l,filename))
-        return Bounds()
+        print("Bounds for {0} are {1}".format(filename, bounds))
+        return bounds
 
     @classmethod
     def locatefile(cls, filename):
@@ -59,7 +73,22 @@ class Library:
 
 class Bounds:
     def __init__(self):
-        pass
+        self.min = [ None, None, None, 1 ]
+        self.max = [ None, None, None, 1 ]
+
+    def extend(self, point):
+        for i in range(0, 3):
+            self.min[i] = self.minmax(self.min[i], point[i], min)
+            self.max[i] = self.minmax(self.max[i], point[i], max)
+
+    def minmax(self, a, b, func):
+        if a == None:
+            return b
+        else:
+            return func(a, b)
+
+    def __repr__(self):
+        return "[ {0} - {1} ]".format(self.min, self.max)
 
 class Item:
     def __init__(self):
