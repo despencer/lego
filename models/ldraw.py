@@ -35,7 +35,7 @@ class Library:
         bounds = Bounds()
         for l in lines:
             l = l.strip()
-            if l == '' or l[0] == '0':
+            if l == '' or l[0] == '0' or l[0] == '5':
                 pass
             else:
                 values = re.split('[ \t\n]+', l)
