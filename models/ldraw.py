@@ -30,7 +30,7 @@ class Library:
     @classmethod
     def calcbounds(cls, filename):
         print("Doing " + filename)
-        with open("/usr/share/ldraw/parts/"+filename) as f:
+        with open(cls.locatefile(filename)) as f:
             lines = f.readlines()
         for l in lines:
             if l[0] == '\n' or l[0] == '0':
@@ -46,6 +46,16 @@ class Library:
                 else:
                     print("Unknown line type in file {1}: {0}".format(l,filename))
         return Bounds()
+
+    @classmethod
+    def locatefile(cls, filename):
+        file = "/usr/share/ldraw/parts/"+filename
+        if os.path.isfile(file):
+            return file
+        file = "/usr/share/ldraw/p/"+filename
+        if os.path.isfile(file):
+            return file
+        raise FileNotFoundError
 
 class Bounds:
     def __init__(self):
