@@ -34,7 +34,8 @@ class Library:
             lines = f.readlines()
         bounds = Bounds()
         for l in lines:
-            if l[0] == '\n' or l[0] == '0':
+            l = l.strip()
+            if l == '' or l[0] == '0':
                 pass
             else:
                 values = re.split('[ \t\n]+', l)
