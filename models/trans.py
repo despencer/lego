@@ -11,6 +11,13 @@ class Transform:
                     trans.matrix[i][j] = trans.matrix[i][j] + ( matrix.matrix[i][k] * self.matrix[k][j] )
         return trans
 
+    def applytopoint(self, point):
+        res = [ 0, 0, 0, 0 ]
+        for i in range(0, 4):
+            for j in range(0, 4):
+                res[i] = res[i] + ( self.matrix[i][j] * point[j] )
+        return res
+
     def copy(self):
         trans = Transform.id()
         for i in range(0, 4):
