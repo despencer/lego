@@ -1,6 +1,7 @@
 import re
 import pandas as pd
 import os.path
+import logging
 from trans import Transform
 
 class Library:
@@ -9,6 +10,7 @@ class Library:
 
     @classmethod
     def init(cls):
+        logging.basicConfig(filename='ldraw.log', filemode='w', level=logging.INFO, format='%(asctime)s %(levelname)s:%(message)s')
         cls.parts = pd.read_csv('/usr/share/rebrickable/parts.csv')
         cls.bounds = dict()
 
@@ -29,7 +31,7 @@ class Library:
 
     @classmethod
     def calcbounds(cls, filename):
-        print("Doing " + filename)
+        logging.info("Doing " + filename)
         with open(cls.locatefile(filename)) as f:
             lines = f.readlines()
         bounds = Bounds()
@@ -39,12 +41,13 @@ class Library:
                 pass
             else:
                 values = re.split('[ \t\n]+', l)
-                print(values)
+                logging.info(values)
                 if(values[0] == '1'):
                     trans = Transform.parseldraw(values[2:14])
                     subfile = values[14].replace("\\",os.path.sep)
-                    print(trans)
+                    logging.info(trans)
                     subbounds = cls.calcbounds(subfile)
+                    logging.info("Return to " + filename)
                 elif(values[0] == '2'):
                     bounds.extend(values[2:5])
                     bounds.extend(values[5:8])
@@ -58,8 +61,8 @@ class Library:
                     bounds.extend(values[8:11])
                     bounds.extend(values[11:14])
                 else:
-                    print("Unknown line type in file {1}: {0}".format(l,filename))
-        print("Bounds for {0} are {1}".format(filename, bounds))
+                    logging.error("Unknown line type in file {1}: {0}".format(l,filename))
+        logging.info("Bounds for {0} are {1}".format(filename, bounds))
         return bounds
 
     @classmethod
