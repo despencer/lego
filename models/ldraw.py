@@ -10,7 +10,7 @@ class Library:
 
     @classmethod
     def init(cls):
-        logging.basicConfig(filename='ldraw.log', filemode='w', level=logging.DEBUG, format='%(asctime)s %(levelname)s:%(message)s')
+        logging.basicConfig(filename='ldraw.log', filemode='w', level=logging.INFO, format='%(asctime)s %(levelname)s:%(message)s')
         cls.parts = pd.read_csv('/usr/share/rebrickable/parts.csv')
         cls.bounds = dict()
 
@@ -46,11 +46,14 @@ class Library:
                     trans = Transform.parseldraw(values[2:14])
                     subfile = values[14].replace("\\",os.path.sep)
                     logging.info(trans)
-                    subbounds = cls.calcbounds(subfile)
-                    logging.info("Return to " + filename)
-                    subbounds.apply(trans)
-                    logging.info("Bounds for %s are %s", subfile, subbounds)
-                    bounds.extend(subbounds)
+                    if subfile.find('stud') < 0:
+                        subbounds = cls.calcbounds(subfile)
+                        logging.info("Return to " + filename)
+                        subbounds.apply(trans)
+                        logging.info("Bounds for %s are %s", subfile, subbounds)
+                        bounds.extend(subbounds)
+                    else:
+                        logging.info('Ignoring %s', subfile)
                 elif(values[0] == '2'):
                     bounds.extend(cls.parseldrawpoint(values[2:5]))
                     bounds.extend(cls.parseldrawpoint(values[5:8]))
