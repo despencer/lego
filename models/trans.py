@@ -64,6 +64,10 @@ class Transform:
         return trans
 
     @classmethod
+    def translationp(cls, point):
+        return cls.translation(point[0], point[1], point[2])
+
+    @classmethod
     def swapyz(cls):
         trans = cls()
         trans.matrix = [ [ 1, 0, 0, 0 ],
@@ -75,8 +79,8 @@ class Transform:
     @classmethod
     def rotatexy(cls):
         trans = cls()
-        trans.matrix = [ [ 0, -1, 0, 0 ],
-                         [ 1, 0, 0, 0 ],
+        trans.matrix = [ [ 0, 1, 0, 0 ],
+                         [ -1, 0, 0, 0 ],
                          [ 0, 0, 1, 0 ],
                          [ 0, 0, 0, 1] ]
         return trans

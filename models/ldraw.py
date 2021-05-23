@@ -10,24 +10,26 @@ class Library:
 
     @classmethod
     def init(cls):
-        logging.basicConfig(filename='ldraw.log', filemode='w', level=logging.INFO, format='%(asctime)s %(levelname)s:%(message)s')
+        logging.basicConfig(filename='ldraw.log', filemode='w', level=logging.DEBUG, format='%(asctime)s %(levelname)s:%(message)s')
         cls.parts = pd.read_csv('/usr/share/rebrickable/parts.csv')
-        cls.bounds = dict()
+        cls.positions = dict()
 
     @classmethod
     def getbyname(cls, name):
         item = Item()
         item.color = 15
         item.file = cls.parts.loc[cls.parts['name'] == name]['part_num'].values[0] + '.dat'
-        Library.getbounds(item.file)
-        item.position = Transform.fromldraw()
+        item.position = cls.getposition(item.file)
         return item
 
     @classmethod
-    def getbounds(cls, filename):
-        if filename not in cls.bounds:
-            cls.bounds[filename] = cls.calcbounds(filename)
-        return cls.bounds[filename]
+    def getposition(cls, filename):
+        if filename not in cls.positions:
+            bounds = cls.calcbounds(filename)
+            cls.positions[filename] = bounds.gettranslation().apply(Transform.fromldraw())
+            logging.debug("For %s transforming with %s", filename, Transform.fromldraw())
+            logging.info('For %s default position set %s', filename, cls.positions[filename])
+        return cls.positions[filename]
 
     @classmethod
     def calcbounds(cls, filename):
@@ -120,6 +122,12 @@ class Bounds:
         logging.debug('Point %s', point)
         return trans.applytopoint(point)
 
+    def gettranslation(self):
+        if self.min[0] == None:
+            return Transform.id()
+        else:
+            return Transform.translation(-self.min[0], -self.min[1], -self.min[2])
+
     def __repr__(self):
         return "[ {0} - {1} ]".format(self.min, self.max)
 
@@ -128,6 +136,7 @@ class Item:
         pass
 
     def transform(self, matrix):
+        logging.debug("Item %s is about to be transformed with %s", self.file, matrix)
         self.position = self.position.apply(matrix)
 
     @classmethod
@@ -135,15 +144,20 @@ class Item:
         item.transform(Transform.rotatexy())
 
     def emitldraw(self, stream):
+        logging.debug("Emit %s from %s", self.file, self.position)
+        logging.debug("Emit %s with %s to %s", self.file, Transform.toldraw(), self.position.apply(Transform.toldraw()))
         stream.write("1 {0} {1} {2}\r\n".format(self.color, self.position.apply(Transform.toldraw()).reprldraw(), self.file ) )
 
     @classmethod
     def frombrick(cls, name, x, y, z, color=15, rotation=None):
+        logging.debug("Item %s at (%s,%s,%s)",name,x,y,z)
         item = Library.getbyname(name)
         item.color = color
+        logging.debug("Item %s at %s",name, item.position)
         if rotation != None:
             rotation(item)
         item.transform(Transform.translation( x*20, y*20, z*24 ) )
+        logging.debug("Item %s finally at %s",name, item.position)
         return item
 
 class Compound:
