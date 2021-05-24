@@ -12,7 +12,7 @@ class Library:
     def init(cls):
         logging.basicConfig(filename='ldraw.log', filemode='w', level=logging.DEBUG, format='%(asctime)s %(levelname)s:%(message)s')
         cls.parts = pd.read_csv('/usr/share/rebrickable/parts.csv')
-        cls.positions = dict()
+        cls.bounds = dict()
 
     @classmethod
     def getbyname(cls, name):
@@ -24,12 +24,12 @@ class Library:
 
     @classmethod
     def getposition(cls, filename):
-        if filename not in cls.positions:
+        if filename not in cls.bounds:
             bounds = cls.calcbounds(filename)
-            cls.positions[filename] = bounds.gettranslation().apply(Transform.fromldraw())
+            cls.bounds[filename] = bounds.gettranslation().apply(Transform.fromldraw())
             logging.debug("For %s transforming with %s", filename, Transform.fromldraw())
-            logging.info('For %s default position set %s', filename, cls.positions[filename])
-        return cls.positions[filename]
+            logging.info('For %s default position set %s', filename, cls.bounds[filename])
+        return cls.bounds[filename]
 
     @classmethod
     def calcbounds(cls, filename):
