@@ -79,8 +79,8 @@ class Transform:
     @classmethod
     def rotatexy(cls):
         trans = cls()
-        trans.matrix = [ [ 0, 1, 0, 0 ],
-                         [ -1, 0, 0, 0 ],
+        trans.matrix = [ [ 0, -1, 0, 0 ],
+                         [ 1, 0, 0, 0 ],
                          [ 0, 0, 1, 0 ],
                          [ 0, 0, 0, 1] ]
         return trans

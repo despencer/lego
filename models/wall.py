@@ -6,12 +6,13 @@ from ldraw import Library, Item, Compound
 
 def createrow(color, sizex, sizey):
     model = Compound()
+    xy = Transform.rotatexy()
     for x in range(0, sizex):
         model.addbrick('Brick 1 x 4', x*4, 0, 0, color=2)
-#        model.addbrick('Brick 1 x 4', x*4+1, sizey*4, 0, color=3)
+        model.addbrick('Brick 1 x 4', x*4+1, sizey*4, 0, color=3)
     for y in range(0, sizey):
-        model.addbrick('Brick 1 x 4', 0, y*4+1, 0, color=4, rotation=Item.rotatexy)
-#        model.addbrick('Brick 1 x 4', sizex*4, y*4, 0, color=5, rotation=Item.rotatexy)
+        model.addbrick('Brick 1 x 4', 0, y*4+1, 0, color=4, rotation=xy)
+        model.addbrick('Brick 1 x 4', sizex*4, y*4, 0, color=5, rotation=xy)
     return model
 
 Library.init()

@@ -10,26 +10,30 @@ class Library:
 
     @classmethod
     def init(cls):
-        logging.basicConfig(filename='ldraw.log', filemode='w', level=logging.DEBUG, format='%(asctime)s %(levelname)s:%(message)s')
+        logging.basicConfig(filename='ldraw.log', filemode='w', level=logging.INFO, format='%(asctime)s %(levelname)s:%(message)s')
         cls.parts = pd.read_csv('/usr/share/rebrickable/parts.csv')
         cls.bounds = dict()
 
     @classmethod
-    def getbyname(cls, name):
+    def getbyname(cls, name, rotation):
         item = Item()
         item.color = 15
         item.file = cls.parts.loc[cls.parts['name'] == name]['part_num'].values[0] + '.dat'
-        item.position = cls.getposition(item.file)
+        item.position = cls.getposition(item.file, rotation)
+        logging.info('Item %s set to %s', item.file, item.position)
         return item
 
     @classmethod
-    def getposition(cls, filename):
+    def getposition(cls, filename, rotation):
+        logging.debug('Position request for %s with %s', filename, rotation)
         if filename not in cls.bounds:
             bounds = cls.calcbounds(filename)
-            cls.bounds[filename] = bounds.gettranslation().apply(Transform.fromldraw())
+            bounds.apply(Transform.fromldraw())
+            logging.debug("For %s bounds finally at %s", filename, bounds)
+            cls.bounds[filename] = bounds
             logging.debug("For %s transforming with %s", filename, Transform.fromldraw())
             logging.info('For %s default position set %s', filename, cls.bounds[filename])
-        return cls.bounds[filename]
+        return Transform.fromldraw().apply(rotation).apply(cls.bounds[filename].gettranslation(rotation))
 
     @classmethod
     def calcbounds(cls, filename):
@@ -113,8 +117,10 @@ class Bounds:
             return func(a, b)
 
     def apply(self, trans):
+        logging.debug("Applying %s to bounds %s", trans, self)
         self.min = self.applypoint(trans, self.min)
         self.max = self.applypoint(trans, self.max)
+        logging.debug("Applied %s, result %s", trans, self)
 
     def applypoint(self, trans, point):
         if point[0] == None:
@@ -122,11 +128,13 @@ class Bounds:
         logging.debug('Point %s', point)
         return trans.applytopoint(point)
 
-    def gettranslation(self):
+    def gettranslation(self, rotation):
         if self.min[0] == None:
             return Transform.id()
         else:
-            return Transform.translation(-self.min[0], -self.min[1], -self.min[2])
+            pmin = self.applypoint(rotation, self.min)
+            pmax = self.applypoint(rotation, self.max)
+            return Transform.translation(-min(pmin[0],pmax[0]), -min(pmin[1],pmax[1]), -min(pmin[2],pmax[2]))
 
     def __repr__(self):
         return "[ {0} - {1} ]".format(self.min, self.max)
@@ -139,23 +147,17 @@ class Item:
         logging.debug("Item %s is about to be transformed with %s", self.file, matrix)
         self.position = self.position.apply(matrix)
 
-    @classmethod
-    def rotatexy(cls, item):
-        item.transform(Transform.rotatexy())
-
     def emitldraw(self, stream):
         logging.debug("Emit %s from %s", self.file, self.position)
         logging.debug("Emit %s with %s to %s", self.file, Transform.toldraw(), self.position.apply(Transform.toldraw()))
         stream.write("1 {0} {1} {2}\r\n".format(self.color, self.position.apply(Transform.toldraw()).reprldraw(), self.file ) )
 
     @classmethod
-    def frombrick(cls, name, x, y, z, color=15, rotation=None):
+    def frombrick(cls, name, x, y, z, color=15, rotation=Transform.id()):
         logging.debug("Item %s at (%s,%s,%s)",name,x,y,z)
-        item = Library.getbyname(name)
+        item = Library.getbyname(name, rotation)
         item.color = color
         logging.debug("Item %s at %s",name, item.position)
-        if rotation != None:
-            rotation(item)
         item.transform(Transform.translation( x*20, y*20, z*24 ) )
         logging.debug("Item %s finally at %s",name, item.position)
         return item
@@ -164,7 +166,7 @@ class Compound:
     def __init__(self):
         self.items = []
 
-    def addbrick(self, name, x, y, z, color=15, rotation=None):
+    def addbrick(self, name, x, y, z, color=15, rotation=Transform.id()):
         item = Item.frombrick(name, x, y, z, color, rotation)
         self.items.append(item)
         return item
