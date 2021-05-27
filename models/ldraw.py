@@ -12,6 +12,8 @@ class Library:
     def init(cls):
         logging.basicConfig(filename='ldraw.log', filemode='w', level=logging.INFO, format='%(asctime)s %(levelname)s:%(message)s')
         cls.parts = pd.read_csv('/usr/share/rebrickable/parts.csv')
+        cls.colors = pd.read_csv('/usr/share/rebrickable/colors.csv')
+        cls.colalias = { 'lbg' : 'Light Bluish Gray', 'dbg' : 'Dark Bluish Gray' }
         cls.bounds = dict()
 
     @classmethod
@@ -22,6 +24,14 @@ class Library:
         item.position = cls.getposition(item.file, rotation)
         logging.info('Item %s set to %s', item.file, item.position)
         return item
+
+    @classmethod
+    def getcolor(cls, color):
+        if isinstance(color, str):
+            if color in cls.colalias:
+                color = cls.colalias[color]
+            return cls.colors.loc[cls.colors['name'] == color]['id'].values[0]
+        return color
 
     @classmethod
     def getposition(cls, filename, rotation):
@@ -156,7 +166,7 @@ class Item:
     def frombrick(cls, name, x, y, z, color=15, rotation=Transform.id()):
         logging.debug("Item %s at (%s,%s,%s)",name,x,y,z)
         item = Library.getbyname(name, rotation)
-        item.color = color
+        item.color = Library.getcolor(color)
         logging.debug("Item %s at %s",name, item.position)
         item.transform(Transform.translation( x*20, y*20, z*24 ) )
         logging.debug("Item %s finally at %s",name, item.position)
