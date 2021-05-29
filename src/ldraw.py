@@ -162,10 +162,10 @@ class Item(Structure):
     def __init__(self):
         super().__init__()
 
-    def emitldraw(self, stream):
-        logging.debug("Emit %s from %s", self.file, self.position)
-        logging.debug("Emit %s with %s to %s", self.file, Transform.toldraw(), self.position.apply(Transform.toldraw()))
-        stream.write("1 {0} {1} {2}\r\n".format(self.color, self.position.apply(Transform.toldraw()).reprldraw(), self.file ) )
+    def emitldraw(self, stream, translation):
+        logging.debug("Emit %s from %s with %s", self.file, self.position, translation)
+        logging.debug("Emit %s with %s to %s", self.file, Transform.toldraw(), self.position.apply(translation).apply(Transform.toldraw()))
+        stream.write("1 {0} {1} {2}\r\n".format(self.color, self.position.apply(translation).apply(Transform.toldraw()).reprldraw(), self.file ) )
 
     @classmethod
     def frombrick(cls, name, x, y, z, color=15, rotation=Transform.id()):
@@ -187,7 +187,8 @@ class Compound (Structure):
         self.items.append(item)
         return item
 
-    def emitldraw(self, stream):
+    def emitldraw(self, stream, translation):
+        matrix = self.position.apply(translation)
         for x in self.items:
-            x.emitldraw(stream)
+            x.emitldraw(stream, matrix)
 
