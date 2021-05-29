@@ -149,13 +149,18 @@ class Bounds:
     def __repr__(self):
         return "[ {0} - {1} ]".format(self.min, self.max)
 
-class Item:
+class Structure:
     def __init__(self):
-        pass
+        self.position = Transform.id()
 
     def transform(self, matrix):
         logging.debug("Item %s is about to be transformed with %s", self.file, matrix)
         self.position = self.position.apply(matrix)
+
+
+class Item(Structure):
+    def __init__(self):
+        super().__init__()
 
     def emitldraw(self, stream):
         logging.debug("Emit %s from %s", self.file, self.position)
@@ -172,8 +177,9 @@ class Item:
         logging.debug("Item %s finally at %s",name, item.position)
         return item
 
-class Compound:
+class Compound (Structure):
     def __init__(self):
+        super().__init__()
         self.items = []
 
     def addbrick(self, name, x, y, z, color=15, rotation=Transform.id()):
