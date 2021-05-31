@@ -8,7 +8,7 @@ from trans import Transform
 from ldraw import Library, Item, Compound
 
 def createmainrow(row):
-    model = Compound()
+    model = Compound("Row{0}".format(row))
     xy = Transform.rotatexy()
     model.addbrick('Brick 1 x 4', 0, 2, 0, color='White')
     model.addbrick('Brick 1 x 2', 0, 3, 0, color='Trans-Light Blue', rotation=xy)
@@ -44,4 +44,4 @@ def createmainrow(row):
 
 Library.init()
 mainrow = createmainrow(0)
-mainrow.emitldraw(sys.stdout)
+mainrow.emitldraw(sys.stdout, Transform.translation(0, 0, 24))

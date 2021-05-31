@@ -20,6 +20,7 @@ class Library:
     def getbyname(cls, name, rotation):
         item = Item()
         item.color = 15
+        item.name = name
         item.file = cls.parts.loc[cls.parts['name'] == name]['part_num'].values[0] + '.dat'
         item.position = cls.getposition(item.file, rotation)
         logging.info('Item %s set to %s', item.file, item.position)
@@ -178,9 +179,10 @@ class Item(Structure):
         return item
 
 class Compound (Structure):
-    def __init__(self):
+    def __init__(self, name):
         super().__init__()
         self.items = []
+        self.name = name
 
     def addbrick(self, name, x, y, z, color=15, rotation=Transform.id()):
         item = Item.frombrick(name, x, y, z, color, rotation)

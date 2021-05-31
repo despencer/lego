@@ -6,7 +6,7 @@ from ldraw import Library, Item, Compound
 
 def createrow(model, color, sizex, sizey, z):
     if model == None:
-        model = Compound()
+        model = Compound("Wall")
     xy = Transform.rotatexy()
     for x in range(0, sizex):
         model.addbrick('Brick 1 x 4', x*4, 0, z, color)
@@ -21,4 +21,4 @@ model = createrow(None, 'White', 2, 2, 0)
 createrow(model, 'Trans-Clear', 2, 2, 1)
 createrow(model, 'Black', 2, 2, 2)
 createrow(model, 'lbg', 2, 2, 3)
-model.emitldraw(sys.stdout)
+model.emitldraw(sys.stdout, Transform.id())
