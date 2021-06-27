@@ -21,7 +21,11 @@ class Library:
         item = Item()
         item.color = 15
         item.name = name
-        item.file = cls.parts.loc[cls.parts['name'] == name]['part_num'].values[0] + '.dat'
+        part = cls.parts.loc[cls.parts['name'] == name]['part_num'].values
+        if len(part) > 0:
+            item.file = part[0] + '.dat'
+        else:
+            item.file = name + '.dat'
         item.position = cls.getposition(item.file, rotation)
         logging.info('Item %s set to %s', item.file, item.position)
         return item
