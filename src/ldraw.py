@@ -155,9 +155,8 @@ class Structure:
         self.position = Transform.id()
 
     def transform(self, matrix):
-        logging.debug("Item %s is about to be transformed with %s", self.file, matrix)
+        logging.debug("Item %s is about to be transformed with %s", self.name, matrix)
         self.position = self.position.apply(matrix)
-
 
 class Item(Structure):
     def __init__(self):
@@ -169,12 +168,15 @@ class Item(Structure):
         stream.write("1 {0} {1} {2}\r\n".format(self.color, self.position.apply(translation).apply(Transform.toldraw()).reprldraw(), self.file ) )
 
     @classmethod
-    def frombrick(cls, name, x, y, z, color=15, rotation=Transform.id()):
+    def frombrick(cls, name, x, y, z, color=15, rotation=Transform.id(), brickunits=True):
         logging.debug("Item %s at (%s,%s,%s)",name,x,y,z)
         item = Library.getbyname(name, rotation)
         item.color = Library.getcolor(color)
         logging.debug("Item %s at %s",name, item.position)
-        item.transform(Transform.translation( x*20, y*20, z*24 ) )
+        if brickunits:
+            item.transform(Transform.translation( x*20, y*20, z*24 ) )
+        else:
+            item.transform(Transform.translation( x, y, z ) )
         logging.debug("Item %s finally at %s",name, item.position)
         return item
 
@@ -184,9 +186,13 @@ class Compound (Structure):
         self.items = []
         self.name = name
 
-    def addbrick(self, name, x, y, z, color=15, rotation=Transform.id()):
-        item = Item.frombrick(name, x, y, z, color, rotation)
+    def add(self, item):
         self.items.append(item)
+        return item
+
+    def addbrick(self, name, x, y, z, color=15, rotation=Transform.id(), brickunits=True):
+        item = Item.frombrick(name, x, y, z, color, rotation, brickunits)
+        self.add(item)
         return item
 
     def emitldraw(self, stream, translation):
